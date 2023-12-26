@@ -1,3 +1,8 @@
+#####################
+###Program Name: DataCleaning.py
+###Programmer: Aaliyah Raderberg
+###Group: From Data Manager to Data Scientist LinkedIn
+#####################
 #Step 1: Import libraries.
 ##pandas, numpy. These are the necessary libraries when it comes to data science.
 
