@@ -10,7 +10,8 @@
 
 💞️ I’m looking to collaborate on clinical research / data management projects.
 
-📫 How to reach me: datamanagersasprogrammer [at] protonmail [dot] ch
+📫 How to reach me: Online Presence:
+[LinkedIn](https://www.linkedin.com/in/aaliyahraderberg/) | [Tableau](https://public.tableau.com/app/profile/aaliyahraderberg/vizzes) | [Kaggle](https://www.kaggle.com/aaliyahraderberg)
 
 /* The codes are provided "as is" by @araderberg. There are no warranties, expressed or implied, 
 as to merchantability or fitness for a particular purpose regarding the materials or code contained herein. 
