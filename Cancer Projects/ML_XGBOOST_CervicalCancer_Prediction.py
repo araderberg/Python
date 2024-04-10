@@ -1,0 +1,333 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# # Cervical Cancer Risk Prediction Using Machine Learning | XGBOOST
+
+# ## Import Libraries
+
+# In[7]:
+
+
+import zipfile
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+# In[8]:
+
+
+#To check the available themes using the jupyterthemes library in Python
+from jupyterthemes import get_themes
+
+themes = get_themes()
+print(themes)
+
+
+# In[9]:
+
+
+#Install any packages, if applicable
+#!pip install plotly
+import plotly.express as px
+from jupyterthemes import jtplot
+jtplot.style(theme = 'onedork', context = 'notebook', ticks = True, grid = False) 
+# setting the style of the notebook to be onedork theme  
+# this line of code is important to ensure that we are able to see the x and y axes clearly
+
+
+# ## Load and Explore dataset - Data Analysis
+
+# In[10]:
+
+
+# import the csv files using pandas 
+cancer_df = pd.read_csv('cervical_cancer.csv')
+ 
+
+
+# In[11]:
+
+
+# Explore the dataframe
+cancer_df
+
+
+# In[12]:
+
+
+# Get data frame info
+cancer_df.info()
+
+
+# In[13]:
+
+
+# Get the statistics of the data frame
+cancer_df.describe()
+
+
+# In[15]:
+
+
+# Check for missing values in the entire DataFrame
+total_missing = cancer_df.isnull().sum().sum()
+print("\nTotal missing values in the DataFrame:", total_missing)
+
+
+# In[16]:
+
+
+missing_values = cancer_df.isnull().sum()
+print("Missing values in each column:")
+print(missing_values)
+
+
+# In[17]:
+
+
+# we noticed '?' in some columns STDs: Time since first diagnosis	STDs: Time since last diagnosis
+# Let's replace '?' with NaN 
+cancer_df = cancer_df.replace('?', np.nan)
+
+
+# In[18]:
+
+
+# Plot heatmap
+cancer_df.isnull()
+
+
+# In[19]:
+
+
+plt.figure(figsize = (20, 20))
+sns.heatmap(cancer_df.isnull(), yticklabels = False)
+
+
+# In[20]:
+
+
+# Get data frame info
+cancer_df.info()
+
+
+# In[21]:
+
+
+# Since STDs: Time since first diagnosis  and STDs: Time since last diagnosis have more than 80% missing values 
+# we can drop them
+cancer_df = cancer_df.drop(columns = ['STDs: Time since first diagnosis','STDs: Time since last diagnosis'])
+cancer_df
+
+
+# In[22]:
+
+
+# Since most of the column types are object, we are not able to get the statistics of the dataframe.
+# Convert them to numeric type
+
+cancer_df = cancer_df.apply(pd.to_numeric)
+cancer_df.info()
+
+
+# In[23]:
+
+
+# Get the statistics of the dataframe
+cancer_df.describe()
+
+
+# In[24]:
+
+
+cancer_df.mean()
+
+
+# In[25]:
+
+
+# Replace null values with mean
+cancer_df = cancer_df.fillna(cancer_df.mean())
+cancer_df
+
+
+# In[26]:
+
+
+# Nan heatmap
+sns.heatmap(cancer_df.isnull(), yticklabels = False)
+
+
+# In[28]:
+
+
+# What is the min age of subject involved in this study?
+cancer_df['Age'].min(0)
+
+
+# In[29]:
+
+
+# What is the max age of the subject involved in this study?
+cancer_df['Age'].max()
+
+
+# In[35]:
+
+
+cancer_df[cancer_df['Age']== 50]
+
+
+# ## Perform Data Vizualization
+
+# In[36]:
+
+
+# Get the correlation matrix
+cor_matrix = cancer_df.corr()
+cor_matrix
+
+
+# In[37]:
+
+
+# Plot the correlation matrix
+plt.figure(figsize = (30, 30))
+sns.heatmap(cor_matrix, annot = True)
+plt.show()
+
+
+# In[38]:
+
+
+#Plot the histogram for the entire DataFrame
+cancer_df.hist(bins = 10, figsize = (30, 30), color = 'r')
+
+
+# ## Prepare the data before model training
+
+# In[39]:
+
+
+target_df = cancer_df['Biopsy']
+input_df = cancer_df.drop(columns = ['Biopsy'])
+
+
+# In[40]:
+
+
+target_df.shape
+
+
+# In[41]:
+
+
+input_df.shape
+
+
+# In[43]:
+
+
+# preparing input features (X) and target values (y) for use in machine learning algorithms 
+X = np.array(input_df).astype('float32') # converts the DataFrame into a NumPy array
+y = np.array(target_df).astype('float32')
+
+
+# In[44]:
+
+
+# reshaping the array from (858,) to (858, 1)
+# y = y.reshape(-1,1)
+y.shape
+
+
+# In[45]:
+
+
+# scaling the data before feeding the model
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+
+# In[46]:
+
+
+X
+
+
+# In[47]:
+
+
+# spliting the data in to test and train sets
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
+X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size = 0.5)
+
+
+# ## Train and Evaluate XGBOOST Classifier
+
+# In[48]:
+
+
+get_ipython().system('pip install xgboost')
+
+
+# In[50]:
+
+
+# Train an XGBoost classifier model 
+import xgboost as xgb
+
+model = xgb.XGBClassifier(learning_rate=0.1, max_depth=5, n_estimators=10)
+
+model.fit(X_train, y_train)
+
+
+# In[51]:
+
+
+result_train = model.score(X_train, y_train)
+result_train
+
+
+# In[52]:
+
+
+# predict the score of the trained model using the testing dataset
+result_test = model.score(X_test, y_test)
+result_test
+
+
+# In[53]:
+
+
+# make predictions on the test data
+y_predict = model.predict(X_test)
+
+
+# In[54]:
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+print(classification_report(y_test, y_predict))
+
+
+# In[56]:
+
+
+# y_predict represents the predicted labels generated by a classifier for a set of input data 
+# y_test represents the actual true labels for the same set of input data.
+# counts the number of true positives, false positives, true negatives, and false negatives. 
+cm = confusion_matrix(y_predict, y_test) #describe the performance of a classification model 
+sns.heatmap(cm, annot = True)
+
+
+# In[ ]:
+
+
+
+
